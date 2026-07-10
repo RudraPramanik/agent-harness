@@ -35,6 +35,8 @@ dependencies = [
     "langchain-openai ~=1.0.2",
     "langfuse >=2.65.0",
     "langgraph ~=1.0.0",
+    # prebuilt>=1.0.9 needs langgraph>=1.1; keep <1.0.9 with langgraph 1.0.x
+    "langgraph-prebuilt>=1.0.8,<1.0.9",
     "langgraph-checkpoint-mongodb ~=0.1.3",
     "langgraph-checkpoint-postgres ~=2.0.13",
     "langgraph-checkpoint-sqlite ~=2.0.1",
