@@ -5,7 +5,7 @@
 **Author:** [Rudra Pramanik](https://github.com/RudraPramanik)  
 **Based on:** [agent-service-toolkit](https://github.com/JoshuaC215/agent-service-toolkit) by Joshua Carroll (MIT)
 
-> Replace `YOUR_USERNAME` above (and in `src/branding.py`) once your GitHub repository is created.
+
 
 ## Overview
 
