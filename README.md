@@ -2,7 +2,7 @@
 
 **AI Agent Studio** is a LangGraph-based agent platform with a FastAPI backend and Streamlit chat UI. Run multi-agent workflows locally or deploy them to free-tier hosting.
 
-**Author:** [Niloy Dey](https://github.com/YOUR_USERNAME)  
+**Author:** [Rudra Pramanik](https://github.com/RudraPramanik)  
 **Based on:** [agent-service-toolkit](https://github.com/JoshuaC215/agent-service-toolkit) by Joshua Carroll (MIT)
 
 > Replace `YOUR_USERNAME` above (and in `src/branding.py`) once your GitHub repository is created.
