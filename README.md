@@ -117,5 +117,5 @@ pytest
 
 MIT — see [LICENSE](./LICENSE).
 
-- Original work Copyright (c) 2024 Joshua Carroll
-- Modifications Copyright (c) 2026 Niloy Dey
+- Root project by Joshua Carroll
+- Major Modifications by Rudra Pramanik
