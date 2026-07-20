@@ -113,9 +113,34 @@ pre-commit install
 pytest
 ```
 
+### Spec-driven development (OpenSpec)
+
+This repo uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for agree-before-you-build changes. Specs live under `openspec/`; Cursor slash commands are in `.cursor/commands/`.
+
+**One-time CLI install** (Node.js 20.19+):
+
+```sh
+npm install -g @fission-ai/openspec@latest
+```
+
+After cloning, refresh Cursor commands if needed: `openspec update`
+
+**Workflow** (in Cursor chat — restart the IDE once after init so slash commands appear):
+
+| Step | Command | What it does |
+|------|---------|----------------|
+| Explore (optional) | `/opsx:explore` | Think through an idea against the codebase |
+| Propose | `/opsx:propose <change-name>` | Draft proposal, delta specs, design, tasks |
+| Apply | `/opsx:apply` | Implement the task checklist |
+| Archive | `/opsx:archive` | Merge specs into `openspec/specs/` and archive the change |
+
+Useful CLI: `openspec list`, `openspec show <change>`, `openspec validate <change>`, `openspec view`.
+
+You do **not** need to document the whole codebase first — write specs only for what you are changing. Project context for AI is in [`openspec/config.yaml`](./openspec/config.yaml).
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
 
 - Root project by Joshua Carroll
-- Major Modifications by Rudra Pramanik
+- Major Modifications and contribution by Rudra Pramanik

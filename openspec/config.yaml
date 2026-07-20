@@ -1,0 +1,34 @@
+schema: spec-driven
+
+# Shown to AI when creating OpenSpec artifacts (proposal, specs, design, tasks).
+context: |
+  Product: AI Agent Studio — LangGraph agents with FastAPI backend and Streamlit chat UI.
+  Language: Python 3.11–3.13 (uv for deps; see pyproject.toml / uv.lock).
+  Stack: LangGraph, LangChain, FastAPI, Streamlit, Pydantic settings, optional Postgres checkpoints.
+  Layout:
+    - src/agents/ — agent definitions; register in src/agents/agents.py
+    - src/service/ — FastAPI HTTP/streaming API
+    - src/streamlit_app.py — chat UI
+    - src/client/ — HTTP client for the API
+    - src/branding.py — app title, tagline, WELCOME_MESSAGES per agent
+    - docs/ — feature guides (RAG, MCP, Ollama, VertexAI, BLUEPRINT)
+  Conventions:
+    - Prefer small, focused changes; follow existing patterns in neighboring modules
+    - New agents: module under src/agents/, register in agents.py, welcome in branding.py
+    - Tests: pytest under tests/; keep env secrets out of commits (.env is gitignored)
+    - Config via .env / pydantic-settings; document new vars in .env.example
+  Domains (grow specs only for areas you change): agents, api, ui, memory, rag, mcp, deploy
+
+rules:
+  proposal:
+    - State non-goals explicitly
+    - Call out which layers are touched (agents / FastAPI / Streamlit / infra)
+  specs:
+    - Prefer Given/When/Then scenarios
+    - Spec only behavior you are changing; do not back-fill the whole codebase
+  design:
+    - Prefer existing libraries and patterns already in the repo
+    - Note env vars, Docker/compose, or deploy impact when relevant
+  tasks:
+    - Break work into small, checkable items
+    - Include tests or manual verification steps when behavior changes
