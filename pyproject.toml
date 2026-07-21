@@ -3,7 +3,6 @@ name = "ai-agent-studio"
 version = "0.1.0"
 description = "AI Agent Studio — LangGraph agents with FastAPI and Streamlit"
 readme = "README.md"
-authors = [{ name = "Niloy Dey" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",

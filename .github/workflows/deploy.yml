@@ -12,7 +12,7 @@ permissions:
 jobs:
   test:
     # Don't try to run deployment in forks and repo copies
-    if: github.repository == 'YOUR_USERNAME/ai-agent-studio'
+    if: github.repository == 'RudraPramanik/agent-harness'
     uses: ./.github/workflows/test.yml
 
   build:

@@ -12,8 +12,6 @@ from branding import (
     APP_ICON,
     APP_TAGLINE,
     APP_TITLE,
-    AUTHOR_LINK,
-    AUTHOR_NAME,
     DEFAULT_WELCOME,
     GITHUB_RAW_BASE,
     GITHUB_REPO_URL,
@@ -237,10 +235,6 @@ async def main() -> None:
             share_chat_dialog()
 
         st.markdown(f"[View the source code]({GITHUB_REPO_URL})")
-        if AUTHOR_LINK:
-            st.caption(f"Built by [{AUTHOR_NAME}]({AUTHOR_LINK}) — {APP_TITLE}")
-        else:
-            st.caption(f"Built by {AUTHOR_NAME} — {APP_TITLE}")
 
     # Draw existing messages
     messages: list[ChatMessage] = st.session_state.messages

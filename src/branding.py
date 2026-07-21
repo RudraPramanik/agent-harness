@@ -6,14 +6,10 @@ APP_TAGLINE = (
     "Build, run, and chat with LangGraph agents — powered by FastAPI and Streamlit."
 )
 
-# Update these when your GitHub repo is ready.
-GITHUB_OWNER = "YOUR_USERNAME"
-GITHUB_REPO = "ai-agent-studio"
+GITHUB_OWNER = "RudraPramanik"
+GITHUB_REPO = "agent-harness"
 GITHUB_REPO_URL = f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}"
 GITHUB_RAW_BASE = f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/blob/main"
-
-AUTHOR_NAME = "Niloy Dey"
-AUTHOR_LINK = ""  # e.g. "https://linkedin.com/in/your-profile"
 
 PRIVACY_NOTICE = (
     "Conversations may be logged for quality improvement when tracing is enabled "
