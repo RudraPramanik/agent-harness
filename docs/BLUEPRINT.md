@@ -90,17 +90,17 @@ Keep upstream attribution in `README.md` and `LICENSE` (MIT requires it). This p
 | Decision | Where to configure |
 |----------|-------------------|
 | Default agent | `src/agents/agents.py` → `DEFAULT_AGENT` (currently `research-assistant`) |
-| Hide demo agents | Remove entries from the `agents` dict in `src/agents/agents.py` |
-| Default LLM | `.env` → `GOOGLE_API_KEY` + `DEFAULT_MODEL=gemini-2.0-flash` |
+| Pause demo agents | Set `enabled=False` on agents in `src/agents/agents.py` (do not delete modules) |
+| Default LLM | `.env` → `GOOGLE_API_KEY` + `DEFAULT_MODEL=gemini-2.0-flash` (set explicitly if multiple provider keys exist) |
 | RAG assistant | Uses OpenAI embeddings today — see [Phase 6](#phase-6--customize-agents-product-roadmap) |
+| NVIDIA NIM (optional) | `COMPATIBLE_BASE_URL=https://integrate.api.nvidia.com/v1` + `COMPATIBLE_API_KEY` + `COMPATIBLE_MODEL` (~40 RPM free tier; keep Gemini as production default) |
 
-**Suggested v1 public demo agents:**
+**Suggested v1 public demo agents (enabled):**
 
 - `chatbot` — general conversation
 - `research-assistant` — web search, calculator, weather
-- `interrupt-agent` — human-in-the-loop demo (optional)
 
-Consider hiding supervisor, command, and bg-task agents until you need them.
+Other agents (supervisors, command, bg-task, rag, kb, github-mcp, interrupt-agent) remain registered but **paused**. Re-enable by setting `enabled=True` on that agent entry.
 
 ### 1.4 Environment variables (Gemini-first)
 

@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.pregel import Pregel
@@ -25,10 +26,20 @@ AgentGraph = CompiledStateGraph | Pregel  # What get_agent() returns (always loa
 AgentGraphLike = CompiledStateGraph | Pregel | LazyLoadingAgent  # What can be stored in registry
 
 
+class AgentPausedError(LookupError):
+    """Raised when an agent exists in the registry but is paused (enabled=False)."""
+
+    def __init__(self, agent_id: str) -> None:
+        self.agent_id = agent_id
+        super().__init__(f"Agent '{agent_id}' is paused")
+
+
 @dataclass
 class Agent:
     description: str
     graph_like: AgentGraphLike
+    enabled: bool = True
+    required_env: frozenset[str] = field(default_factory=frozenset)
 
 
 agents: dict[str, Agent] = {
@@ -40,28 +51,60 @@ agents: dict[str, Agent] = {
     "rag-assistant": Agent(
         description="Document Q&A over your ChromaDB knowledge base.",
         graph_like=rag_assistant,
+        enabled=False,
+        required_env=frozenset({"OPENAI_API_KEY"}),
     ),
-    "command-agent": Agent(description="Command routing and flow control demo.", graph_like=command_agent),
-    "bg-task-agent": Agent(description="Background task execution demo.", graph_like=bg_task_agent),
+    "command-agent": Agent(
+        description="Command routing and flow control demo.",
+        graph_like=command_agent,
+        enabled=False,
+    ),
+    "bg-task-agent": Agent(
+        description="Background task execution demo.",
+        graph_like=bg_task_agent,
+        enabled=False,
+    ),
     "langgraph-supervisor-agent": Agent(
-        description="Multi-agent supervisor pattern.", graph_like=langgraph_supervisor_agent
+        description="Multi-agent supervisor pattern.",
+        graph_like=langgraph_supervisor_agent,
+        enabled=False,
     ),
     "langgraph-supervisor-hierarchy-agent": Agent(
         description="Nested hierarchy of supervised agents.",
         graph_like=langgraph_supervisor_hierarchy_agent,
+        enabled=False,
     ),
     "interrupt-agent": Agent(
-        description="Human-in-the-loop with LangGraph interrupts.", graph_like=interrupt_agent
+        description="Human-in-the-loop with LangGraph interrupts.",
+        graph_like=interrupt_agent,
+        enabled=False,
     ),
     "knowledge-base-agent": Agent(
         description="RAG via Amazon Bedrock knowledge base.",
         graph_like=kb_agent,
+        enabled=False,
+        required_env=frozenset({"AWS_KB_ID"}),
     ),
     "github-mcp-agent": Agent(
         description="GitHub MCP tools for repos and development workflows.",
         graph_like=github_mcp_agent,
+        enabled=False,
+        required_env=frozenset({"GITHUB_PAT"}),
     ),
 }
+
+
+def resolve_agent_enablement() -> None:
+    """Opt-in: auto-enable paused agents when all required_env keys are set.
+
+    Call only when AUTO_ENABLE_AGENTS is true. Does not disable agents that are
+    already enabled.
+    """
+    for agent in agents.values():
+        if agent.enabled or not agent.required_env:
+            continue
+        if all(os.environ.get(key) for key in agent.required_env):
+            agent.enabled = True
 
 
 async def load_agent(agent_id: str) -> None:
@@ -72,8 +115,17 @@ async def load_agent(agent_id: str) -> None:
 
 
 def get_agent(agent_id: str) -> AgentGraph:
-    """Get an agent graph, loading lazy agents if needed."""
-    agent_graph = agents[agent_id].graph_like
+    """Get an agent graph, loading lazy agents if needed.
+
+    Raises:
+        KeyError: If agent_id is not in the registry.
+        AgentPausedError: If the agent exists but is paused (enabled=False).
+    """
+    agent = agents[agent_id]
+    if not agent.enabled:
+        raise AgentPausedError(agent_id)
+
+    agent_graph = agent.graph_like
 
     # If it's a lazy loading agent, ensure it's loaded and return its graph
     if isinstance(agent_graph, LazyLoadingAgent):
@@ -86,7 +138,9 @@ def get_agent(agent_id: str) -> AgentGraph:
 
 
 def get_all_agent_info() -> list[AgentInfo]:
+    """Return metadata for enabled agents only."""
     return [
-        AgentInfo(key=agent_id, description=agent.description) for agent_id, agent in agents.items()
+        AgentInfo(key=agent_id, description=agent.description)
+        for agent_id, agent in agents.items()
+        if agent.enabled
     ]
-

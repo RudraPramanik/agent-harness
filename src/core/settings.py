@@ -80,6 +80,9 @@ class Settings(BaseSettings):
 
     AUTH_SECRET: SecretStr | None = None
 
+    # When true, paused agents with all required_env keys set become enabled at startup
+    AUTO_ENABLE_AGENTS: bool = False
+
     OPENAI_API_KEY: SecretStr | None = None
     DEEPSEEK_API_KEY: SecretStr | None = None
     ANTHROPIC_API_KEY: SecretStr | None = None

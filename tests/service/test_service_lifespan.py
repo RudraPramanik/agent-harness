@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
@@ -52,6 +53,7 @@ async def test_lifespan(monkeypatch, caplog) -> None:
     monkeypatch.setattr(service, "initialize_store", fake_initialize_store)
     monkeypatch.setattr(service, "load_agent", fake_load_agent)
     monkeypatch.setattr(service, "get_agent", fake_get_agent)
+    monkeypatch.setattr(service, "settings", Mock(AUTO_ENABLE_AGENTS=False))
     monkeypatch.setattr(
         service,
         "get_all_agent_info",
@@ -75,3 +77,52 @@ async def test_lifespan(monkeypatch, caplog) -> None:
 
     assert "Agent loaded: good" in caplog.text
     assert "Failed to load agent bad: boom" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_lifespan_skips_paused_agents(monkeypatch) -> None:
+    """Lifespan only loads agents returned by get_all_agent_info (enabled only)."""
+    from service import service
+
+    class FakeSaver:
+        async def setup(self) -> None:
+            return None
+
+    class FakeStore:
+        async def setup(self) -> None:
+            return None
+
+    @asynccontextmanager
+    async def fake_initialize_database():
+        yield FakeSaver()
+
+    @asynccontextmanager
+    async def fake_initialize_store():
+        yield FakeStore()
+
+    loaded: list[str] = []
+
+    async def fake_load_agent(agent_key: str) -> None:
+        loaded.append(agent_key)
+
+    fake_graph = type("Agent", (), {"checkpointer": None, "store": None})()
+
+    monkeypatch.setattr(service, "initialize_database", fake_initialize_database)
+    monkeypatch.setattr(service, "initialize_store", fake_initialize_store)
+    monkeypatch.setattr(service, "load_agent", fake_load_agent)
+    monkeypatch.setattr(service, "get_agent", lambda _key: fake_graph)
+    monkeypatch.setattr(service, "settings", Mock(AUTO_ENABLE_AGENTS=False))
+    monkeypatch.setattr(
+        service,
+        "get_all_agent_info",
+        lambda: [
+            AgentInfo(key="chatbot", description=""),
+            AgentInfo(key="research-assistant", description=""),
+        ],
+    )
+
+    async with service.lifespan(FastAPI()):
+        pass
+
+    assert loaded == ["chatbot", "research-assistant"]
+    assert "interrupt-agent" not in loaded

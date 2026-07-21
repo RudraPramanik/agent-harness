@@ -1,0 +1,7 @@
+# Streamlit Community Cloud installs from this file (main file: src/streamlit_app.py).
+# Regenerate from pyproject.toml client group if deps change:
+#   uv export --only-group client --no-hashes -o requirements.txt
+httpx~=0.28.0
+pydantic~=2.10.1
+python-dotenv~=1.0.1
+streamlit~=1.52.0

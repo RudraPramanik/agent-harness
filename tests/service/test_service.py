@@ -29,6 +29,19 @@ def test_invoke(test_client, mock_agent) -> None:
     assert output.content == ANSWER
 
 
+def test_invoke_paused_agent(test_client) -> None:
+    """Paused agents return 404 with a clear detail message."""
+    response = test_client.post("/interrupt-agent/invoke", json={"message": "hello"})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Agent 'interrupt-agent' is paused"
+
+
+def test_stream_paused_agent(test_client) -> None:
+    """Paused agents return 404 on /stream before SSE starts."""
+    response = test_client.post("/interrupt-agent/stream", json={"message": "hello"})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Agent 'interrupt-agent' is paused"
+
 def test_invoke_custom_agent(test_client, mock_agent) -> None:
     """Test that /invoke works with a custom agent_id path parameter."""
     CUSTOM_AGENT = "custom_agent"

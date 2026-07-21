@@ -22,7 +22,15 @@ from langgraph.types import Command, Interrupt
 from langsmith import Client as LangsmithClient
 from langsmith import uuid7
 
-from agents import DEFAULT_AGENT, AgentGraph, get_agent, get_all_agent_info, load_agent
+from agents import (
+    DEFAULT_AGENT,
+    AgentGraph,
+    AgentPausedError,
+    get_agent,
+    get_all_agent_info,
+    load_agent,
+    resolve_agent_enablement,
+)
 from core import settings
 from memory import initialize_database, initialize_store
 from schema import (
@@ -79,7 +87,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             if hasattr(store, "setup"):  # ignore: union-attr
                 await store.setup()
 
+            if settings.AUTO_ENABLE_AGENTS:
+                resolve_agent_enablement()
+
             # Configure agents with both memory components and async loading
+            # get_all_agent_info() returns enabled agents only
             agents = get_all_agent_info()
             for a in agents:
                 try:
@@ -114,6 +126,19 @@ async def info() -> ServiceMetadata:
         default_agent=DEFAULT_AGENT,
         default_model=settings.DEFAULT_MODEL,
     )
+
+
+def _resolve_agent(agent_id: str) -> AgentGraph:
+    """Resolve an agent by id, mapping missing/paused agents to HTTP 404."""
+    try:
+        return get_agent(agent_id)
+    except AgentPausedError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{agent_id}' not found",
+        ) from e
 
 
 async def _handle_input(user_input: UserInput, agent: AgentGraph) -> tuple[dict[str, Any], UUID]:
@@ -189,7 +214,7 @@ async def invoke(user_input: UserInput, agent_id: str = DEFAULT_AGENT) -> ChatMe
     # in interrupt-agent, or a tool step in research-assistant), it's omitted. Arguably,
     # you'd want to include it. You could update the API to return a list of ChatMessages
     # in that case.
-    agent: AgentGraph = get_agent(agent_id)
+    agent: AgentGraph = _resolve_agent(agent_id)
     kwargs, run_id = await _handle_input(user_input, agent)
 
     try:
@@ -222,7 +247,7 @@ async def message_generator(
 
     This is the workhorse method for the /stream endpoint.
     """
-    agent: AgentGraph = get_agent(agent_id)
+    agent: AgentGraph = _resolve_agent(agent_id)
     kwargs, run_id = await _handle_input(user_input, agent)
 
     try:
@@ -366,6 +391,8 @@ async def stream(user_input: StreamInput, agent_id: str = DEFAULT_AGENT) -> Stre
 
     Set `stream_tokens=false` to return intermediate messages but not token-by-token.
     """
+    # Validate agent before starting the SSE stream so paused/missing agents return 404
+    _resolve_agent(agent_id)
     return StreamingResponse(
         message_generator(user_input, agent_id),
         media_type="text/event-stream",
